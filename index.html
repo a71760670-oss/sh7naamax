@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAX SH7NA</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@2/dist/tesseract.min.js"></script>
+<style>
+body{font-family:'Cairo',sans-serif;background:#0f172a;color:white;margin:0;padding:0}
+.card{background:#1e293b;border:1px solid #334155;padding:1rem;border-radius:1rem;margin-bottom:0.5rem;cursor:pointer;text-align:center;}
+.active{border:2px solid #22d3ee;background:#0f172a}
+.disabled{opacity:.4;pointer-events:none}
+button{cursor:pointer}
+input{padding:0.75rem;border-radius:0.75rem;border:1px solid #334155;background:#1e293b;color:white;width:100%;margin-bottom:0.5rem;text-align:center}
+h1,h2{margin:0 0 1rem 0}
+.text-center{text-align:center}
+.w-full{width:100%}
+.bg-cyan{background:#22d3ee;color:#0f172a}
+.bg-green{background:#16a34a;color:white}
+.mb-4{margin-bottom:1rem}
+.mb-3{margin-bottom:0.75rem}
+.p-3{padding:0.75rem}
+.p-4{padding:1rem}
+.rounded-xl{border-radius:1rem}
+.grid{display:grid}
+.grid-cols-2{grid-template-columns:repeat(2,1fr)}
+.gap-3{gap:0.75rem}
+.flex{display:flex}
+.flex-1{flex:1}
+.gap-2{gap:0.5rem}
+.font-bold{font-weight:700}
+.text-lg{font-size:1.125rem}
+.text-xl{font-size:1.25rem}
+.text-2xl{font-size:1.5rem}
+</style>
+<script>
+function swal(title,text){alert(title+"\n"+text);}
+</script>
+</head>
+<body class="p-4 max-w-xl mx-auto">
+
+<h1 class="text-2xl font-bold text-center mb-4">MAX SH7NA</h1>
+
+<!-- الصفحة الرئيسية -->
+<div id="home">
+<h2 class="font-bold mb-3">الألعاب</h2>
+<div class="grid grid-cols-2 gap-3">
+  <div onclick="openGame()" class="card">يلا لودو</div>
+  <div class="card disabled">PUBG</div>
+  <div class="card disabled">فري فاير</div>
+  <div class="card disabled">TikTok</div>
+</div>
+</div>
+
+<!-- صفحة اللعبة -->
+<div id="game" style="display:none">
+<button onclick="backHome()" class="mb-4">رجوع</button>
+<h2 class="text-xl font-bold mb-4 text-center">يلا لودو</h2>
+<input id="playerId" placeholder="ادخل ID اللاعب">
+<div class="flex gap-2 mb-4">
+<button onclick="showTab('gold')" class="flex-1" style="background:#facc15">ذهب</button>
+<button onclick="showTab('gems')" class="flex-1" style="background:#ec4899">مسات</button>
+<button onclick="showTab('vip')" class="flex-1" style="background:#a855f7">VIP</button>
+</div>
+<div id="packages"></div>
+<button onclick="goToPay()" class="w-full bg-cyan p-3 font-bold">متابعة الدفع</button>
+</div>
+
+<!-- صفحة الدفع -->
+<div id="pay" style="display:none">
+<h2 class="text-xl font-bold mb-4 text-center">فودافون كاش</h2>
+<p class="text-center mb-2">حول على الرقم:</p>
+<p class="text-center font-bold text-lg mb-4" id="walletNumberDisplay">01115616787</p>
+<input id="fromNumber" placeholder="رقم الذي حول منه">
+<input id="amount" placeholder="المبلغ المحول">
+<input type="file" id="image">
+<button onclick="finishOrder()" class="w-full bg-green p-3 font-bold">إتمام الدفع</button>
+</div>
+
+<script>
+// الإعدادات
+let selectedPackage=null;
+let selectedPrice=null;
+const walletNumber="01115616787";
+const apiKey="wps_46a97b93dbfcda249961351794d0812e831aef99d05c2e8063ec18c218ac18bd";
+const myWhatsApp="01007885684";
+const telegramLink="https://t.me/sh7namax";
+
+// الباقات
+const goldPackages=[
+{qty:"10K ذهب",price:50},
+{qty:"25K ذهب",price:100},
+{qty:"50K ذهب",price:180},
+{qty:"75K ذهب",price:250},
+{qty:"100K ذهب",price:320}
+];
+const gemsPackages=[
+{qty:"100 مس",price:40},
+{qty:"250 مس",price:90},
+{qty:"500 مس",price:160},
+{qty:"800 مس",price:240}
+];
+const vipPackages=[
+{qty:"فارس VIP",price:150},
+{qty:"لواقة VIP",price:300},
+{qty:"غرف VIP",price:500}
+];
+
+// فتح اللعبة
+function openGame(){
+document.getElementById('home').style.display='none';
+document.getElementById('game').style.display='block';
+showTab('gold');
+}
+function backHome(){
+document.getElementById('game').style.display='none';
+document.getElementById('home').style.display='block';
+}
+
+// عرض الباقات
+function showTab(type){
+let list=[];
+if(type==='gold') list=goldPackages;
+if(type==='gems') list=gemsPackages;
+if(type==='vip') list=vipPackages;
+let html='';
+list.forEach((p)=>{html+=`<div onclick="selectPackage('${p.qty}',${p.price})" class="card flex justify-between"><span>${p.qty}</span><span>${p.price} جنيه</span></div>`;});
+document.getElementById('packages').innerHTML=html;
+}
+
+// اختيار باقة
+function selectPackage(qty,price){
+selectedPackage=qty;
+selectedPrice=price;
+swal("تم الاختيار", qty+" - "+price+" جنيه");
+}
+
+// الانتقال للدفع
+function goToPay(){
+let playerId=document.getElementById('playerId').value;
+if(!selectedPackage || !playerId){swal("خطأ","ادخل ID اللاعب واختر باقة");return;}
+document.getElementById('game').style.display='none';
+document.getElementById('pay').style.display='block';
+}
+
+// OCR للتحقق من الصورة
+async function checkImage(file){
+return new Promise((resolve,reject)=>{
+Tesseract.recognize(file,'ara').then(({data:{text}})=>{
+const walletMatch=text.match(/\b\d{10,11}\b/);
+const amountMatch=text.match(/\b\d{2,5}\b(?=\s*جنيه)/);
+resolve({wallet:walletMatch?walletMatch[0]:null,amount:amountMatch?parseInt(amountMatch[0]):null});
+}).catch(err=>resolve({wallet:null,amount:null}));
+});
+}
+
+// إتمام الدفع والتحقق + إرسال WhatsApp + تحويل Telegram
+async function finishOrder(){
+let id=document.getElementById('playerId').value;
+let from=document.getElementById('fromNumber').value;
+let amountInput=document.getElementById('amount').value;
+let file=document.getElementById('image').files[0];
+
+if(!from || !amountInput || !file){swal("خطأ","اكمل كل الحقول","error");return;}
+if(parseInt(amountInput)!==selectedPrice){swal("خطأ","المبلغ لا يطابق سعر الباقة","error");return;}
+
+// تحقق من الصورة
+let {wallet,amount}=await checkImage(file);
+if(wallet!==walletNumber || amount!==selectedPrice){swal("خطأ","التحويل غير صحيح","error");return;}
+
+const message=`تم الدفع بنجاح\nالباقة: ${selectedPackage}\nID: ${id}`;
+
+// إرسال WhatsApp
+fetch('https://backendapi.wpsenderx.com/api/sendMessage',{
+method:'POST',
+headers:{'Content-Type':'application/json','X-API-Key':apiKey},
+body:JSON.stringify({phone:myWhatsApp,message:message})
+}).then(res=>{
+if(res.ok){
+swal("تم","تم الدفع والرسالة أرسلت","success");
+// تحويل العميل على Telegram
+window.location.href=telegramLink;
+}else swal("خطأ","فشل إرسال WhatsApp","error");
+}).catch(err=>swal("خطأ","فشل الاتصال بالAPI","error"));
+}
+</script>
+</body>
+</html>
